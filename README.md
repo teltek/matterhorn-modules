@@ -7,7 +7,7 @@ Documentation
 -------------
 
 
-Execution Service.
+Execute Service.
 
 
 * http://opencast.jira.com/wiki/display/MH/ExecuteOnceWorkflowOperation
