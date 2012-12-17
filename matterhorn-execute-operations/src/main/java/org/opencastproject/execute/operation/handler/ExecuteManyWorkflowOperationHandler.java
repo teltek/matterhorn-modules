@@ -132,7 +132,9 @@ public class ExecuteManyWorkflowOperationHandler extends AbstractWorkflowOperati
     String outputFilename = StringUtils.trimToNull(operation.getConfiguration(OUTPUT_FILENAME_PROPERTY));
     String expectedTypeStr = StringUtils.trimToNull(operation.getConfiguration(EXPECTED_TYPE_PROPERTY));
 
-    MediaPackageElementFlavor matchingFlavor = MediaPackageElementFlavor.parseFlavor(sourceFlavor);
+    MediaPackageElementFlavor matchingFlavor = null;
+    if (sourceFlavor != null)
+	matchingFlavor = MediaPackageElementFlavor.parseFlavor(sourceFlavor);
 
     // Unmarshall target flavor
     MediaPackageElementFlavor targetFlavor = null;
