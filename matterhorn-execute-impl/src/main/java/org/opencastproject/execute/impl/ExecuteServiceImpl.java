@@ -225,7 +225,7 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
    */
   @Override
   protected String process(Job job) throws ExecuteException {
-    List<String> arguments = job.getArguments();
+    List<String> arguments =  new ArrayList<String>(job.getArguments());
 
     // Check this operation is allowed
     if (!allowedCommands.isEmpty() && !allowedCommands.contains(arguments.get(0)))
