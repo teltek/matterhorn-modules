@@ -9,7 +9,6 @@ Documentation
 
 Execute Service.
 
-
-* http://opencast.jira.com/wiki/display/MH/ExecuteOnceWorkflowOperation
-* http://opencast.jira.com/wiki/display/MH/ExecuteManyWorkflowOperation
-* http://opencast.jira.com/wiki/display/MH/Execute+Service
+* http://opencast.jira.com/wiki/display/MHDOC/Execute+Service
+* http://opencast.jira.com/wiki/display/MHDOC/ExecuteOnceWorkflowOperation
+* http://opencast.jira.com/wiki/display/MHDOC/ExecuteManyWorkflowOperation
