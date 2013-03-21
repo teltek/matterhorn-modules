@@ -308,7 +308,9 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
       StringBuffer sb = new StringBuffer();
       while (matcher.find()) {
         // group(1) = property. group(2) = (optional) parameter
-        if (matcher.group(1).equals("flavor")) {
+	if (matcher.group(1).equals("id")) {
+	  matcher.appendReplacement(sb, mp.getIdentifier().toString());
+	} else if (matcher.group(1).equals("flavor")) {
           elementsByFlavor = mp.getElementsByFlavor(
                   MediaPackageElementFlavor.parseFlavor(matcher.group(2)));
           if (elementsByFlavor.length == 0)
