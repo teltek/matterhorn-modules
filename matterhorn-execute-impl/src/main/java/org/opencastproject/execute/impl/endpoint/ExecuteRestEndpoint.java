@@ -186,7 +186,6 @@ public class ExecuteRestEndpoint extends AbstractJobProducerEndpoint {
   /* (non-Javadoc)
    * @see org.opencastproject.rest.AbstractJobProducerEndpoint#getServiceRegistry()
    */
-  @Override
   public ServiceRegistry getServiceRegistry() {
     // FIXME: Why is this in the abstract ancestor?
     return null;
