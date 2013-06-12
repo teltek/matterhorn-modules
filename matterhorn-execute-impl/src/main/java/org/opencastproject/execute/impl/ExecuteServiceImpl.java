@@ -1,4 +1,4 @@
-/** 
+/**
  *  Copyright 2009, 2010 The Regents of the University of California
  *  Licensed under the Educational Community License, Version 2.0
  *  (the "License"); you may not use this file except in compliance
@@ -40,6 +40,7 @@ import org.opencastproject.util.NotFoundException;
 import org.opencastproject.workspace.api.Workspace;
 
 import org.apache.commons.lang.StringUtils;
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,8 +65,7 @@ import java.util.regex.Pattern;
 public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteService {
 
   public enum Operation {
-    Execute_Element,
-    Execute_Mediapackage
+    Execute_Element, Execute_Mediapackage
   }
 
   /** The logging facility */
@@ -86,15 +86,23 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
   /** The workspace service */
   protected Workspace workspace;
 
-  /** List of allowed commands that can be run with an executor.
-   *  By convention, an empty set means any command can be run */
+  /**
+   * List of allowed commands that can be run with an executor. By convention, an empty set means any command can be run
+   */
   protected final Set<String> allowedCommands = new HashSet<String>();
 
-  /** Bundle property specifying which commands can be run with this executor */ 
+  /** Bundle property specifying which commands can be run with this executor */
   public static final String COMMANDS_ALLOWED_PROPERTY = "commands.allowed";
 
   /** The collection for the executor files */
   public static final String COLLECTION = "executor";
+
+  /** To allow command-line parameter substitutions configured globally i.e. in config.properties */
+  private BundleContext bundleContext;
+
+  /** To allow command-line parameter substitutions configured at the service level */
+  @SuppressWarnings("rawtypes")
+  private Dictionary properties = null;
 
   /**
    * Creates a new instance of the execute service.
@@ -102,7 +110,6 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
   public ExecuteServiceImpl() {
     super(JOB_TYPE);
   }
-
 
   /**
    * Activates this component with its properties once all of the collaborating services have been set
@@ -112,17 +119,17 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
    */
   public void activate(ComponentContext cc) {
 
-    @SuppressWarnings("rawtypes")
-    Dictionary properties = cc.getProperties();
+    properties = cc.getProperties();
 
     if (properties != null) {
-      String commandString = (String)properties.get(COMMANDS_ALLOWED_PROPERTY);
+      String commandString = (String) properties.get(COMMANDS_ALLOWED_PROPERTY);
       if (commandString != null)
         for (String command : commandString.split("\\s+"))
           allowedCommands.add(command);
     }
-  }
 
+    this.bundleContext = cc.getBundleContext();
+  }
 
   /**
    * {@inheritDoc}
@@ -138,12 +145,14 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
    * {@inheritDoc}
    * 
    * @see org.opencastproject.textanalyzer.api.ExecuteService#execute(String, String)
-   * @throws IllegalArgumentException if the input arguments are incorrect
-   * @throws ExecuteException if an internal error occurs
+   * @throws IllegalArgumentException
+   *           if the input arguments are incorrect
+   * @throws ExecuteException
+   *           if an internal error occurs
    */
   @Override
-  public Job execute(String exec, String params, MediaPackageElement inElement, String outFileName,
-          Type expectedType) throws ExecuteException, IllegalArgumentException {
+  public Job execute(String exec, String params, MediaPackageElement inElement, String outFileName, Type expectedType)
+          throws ExecuteException, IllegalArgumentException {
 
     logger.debug("Creating Execute Job for command: {}", exec);
 
@@ -177,12 +186,13 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
     }
   }
 
-
-  /**{@inheritDoc}
-   * @see org.opencastproject.execute.api.ExecuteService#executeOnce(java.lang.String, java.lang.String, 
-   * org.opencastproject.mediapackage.MediaPackage, java.lang.String,
-   * org.opencastproject.mediapackage.MediaPackageElement.Type,
-   * org.opencastproject.mediapackage.MediaPackageElementFlavor, java.lang.String[])
+  /**
+   * {@inheritDoc}
+   * 
+   * @see org.opencastproject.execute.api.ExecuteService#executeOnce(java.lang.String, java.lang.String,
+   *      org.opencastproject.mediapackage.MediaPackage, java.lang.String,
+   *      org.opencastproject.mediapackage.MediaPackageElement.Type,
+   *      org.opencastproject.mediapackage.MediaPackageElementFlavor, java.lang.String[])
    */
   @Override
   public Job execute(String exec, String params, MediaPackage mp, String outFileName, Type expectedType)
@@ -215,17 +225,17 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
     }
   }
 
-
   /**
    * {@inheritDoc}
-   * @throws ExecuteException 
-   * @throws NotFoundException 
+   * 
+   * @throws ExecuteException
+   * @throws NotFoundException
    * 
    * @see org.opencastproject.job.api.AbstractJobProducer#process(org.opencastproject.job.api.Job)
    */
   @Override
   protected String process(Job job) throws ExecuteException {
-    List<String> arguments =  new ArrayList<String>(job.getArguments());
+    List<String> arguments = new ArrayList<String>(job.getArguments());
 
     // Check this operation is allowed
     if (!allowedCommands.isEmpty() && !allowedCommands.contains(arguments.get(0)))
@@ -259,12 +269,12 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
               element = MediaPackageElementParser.getFromXml(arguments.remove(2));
               return doProcess(arguments, element, outFileName, expectedType);
             default:
-              throw new IllegalStateException("Don't know how to handle operation '" + job.getOperation() + "'"); 
+              throw new IllegalStateException("Don't know how to handle operation '" + job.getOperation() + "'");
           }
-          
+
         default:
-          throw new IndexOutOfBoundsException("Incorrect number of parameters for operation execute_" 
-                  + op + ": " + arguments.size());
+          throw new IndexOutOfBoundsException("Incorrect number of parameters for operation execute_" + op + ": "
+                  + arguments.size());
       }
 
     } catch (MediaPackageException e) {
@@ -275,7 +285,6 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
       throw new ExecuteException("The argument list for operation '" + op + "' does not meet expectations", e);
     }
   }
-
 
   public String doProcess(List<String> arguments, MediaPackage mp, String outFileName, Type expectedType)
           throws ExecuteException {
@@ -295,7 +304,7 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
       // Get the substitution pattern.
       // The following pattern matches, any construct with the form
       // #{name}
-      //, where 'name' is the name of a certain property. It is stored in the backreference group 1.
+      // , where 'name' is the name of a certain property. It is stored in the backreference group 1.
       // Optionally, expressions can take a parameter, like
       // #{name(parameter)}
       // , where 'parameter' is the name of a certain parameter.
@@ -308,31 +317,34 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
       StringBuffer sb = new StringBuffer();
       while (matcher.find()) {
         // group(1) = property. group(2) = (optional) parameter
-	if (matcher.group(1).equals("id")) {
-	  matcher.appendReplacement(sb, mp.getIdentifier().toString());
-	} else if (matcher.group(1).equals("flavor")) {
-          elementsByFlavor = mp.getElementsByFlavor(
-                  MediaPackageElementFlavor.parseFlavor(matcher.group(2)));
+        if (matcher.group(1).equals("id")) {
+          matcher.appendReplacement(sb, mp.getIdentifier().toString());
+        } else if (matcher.group(1).equals("flavor")) {
+          elementsByFlavor = mp.getElementsByFlavor(MediaPackageElementFlavor.parseFlavor(matcher.group(2)));
           if (elementsByFlavor.length == 0)
             throw new ExecuteException("No elements in the MediaPackage match the flavor '" + matcher.group(1) + "'.");
 
-          if (elementsByFlavor.length > 1)  
-            logger.warn("Found more than one element with flavor '{}'. Using {} by default...",
-                    matcher.group(1), elementsByFlavor[0].getIdentifier());
+          if (elementsByFlavor.length > 1)
+            logger.warn("Found more than one element with flavor '{}'. Using {} by default...", matcher.group(1),
+                    elementsByFlavor[0].getIdentifier());
 
           File elementFile = workspace.get(elementsByFlavor[0].getURI());
           matcher.appendReplacement(sb, elementFile.getAbsolutePath());
         } else if (matcher.group(1).equals("out")) {
           matcher.appendReplacement(sb, outFile.getAbsolutePath());
+        } else if (properties.get(matcher.group(1)) != null) {
+          matcher.appendReplacement(sb, (String) properties.get(matcher.group(1)));
+        } else if (bundleContext.getProperty(matcher.group(1)) != null) {
+          matcher.appendReplacement(sb, bundleContext.getProperty(matcher.group(1)));
         }
-      }    
+      }
       matcher.appendTail(sb);
       params = sb.toString();
     } catch (IllegalArgumentException e) {
       throw new ExecuteException("Tag 'flavor' must specify a valid MediaPackage element flavor.", e);
     } catch (NotFoundException e) {
-      throw new ExecuteException("The element '" + elementsByFlavor[0].getURI().toString() +
-              "' does not exist in the workspace.", e);
+      throw new ExecuteException("The element '" + elementsByFlavor[0].getURI().toString()
+              + "' does not exist in the workspace.", e);
     } catch (IOException e) {
       throw new ExecuteException("Error retrieving MediaPackage element from workspace: '"
               + elementsByFlavor[0].getURI().toString() + "'.", e);
@@ -343,18 +355,23 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
     return runCommand(arguments, outFile, expectedType);
   }
 
-
   /**
    * Does the actual processing
-   * @param exec The command to run
-   * @param params The CLI line including the command name
-   * @param element A Matterhorn track
+   * 
+   * @param exec
+   *          The command to run
+   * @param params
+   *          The CLI line including the command name
+   * @param element
+   *          A Matterhorn track
    * @return A {@code String} containing the command output
-   * @throws ExecuteException if some internal error occurred
-   * @throws NotFoundException  if the mediapackage element could not be found in the workspace
+   * @throws ExecuteException
+   *           if some internal error occurred
+   * @throws NotFoundException
+   *           if the mediapackage element could not be found in the workspace
    */
-  public String doProcess(List<String> arguments, MediaPackageElement element, String outFileName,
-          Type expectedType) throws ExecuteException {
+  public String doProcess(List<String> arguments, MediaPackageElement element, String outFileName, Type expectedType)
+          throws ExecuteException {
 
     // arguments(1) contains a list of space-separated arguments for the command
     String params = arguments.remove(1);
@@ -382,8 +399,8 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
             continue;
           } else {
             logger.error("{} pattern found, but no valid output filename was specified", OUTPUT_FILE_PATTERN);
-            throw new ExecuteException(
-                    OUTPUT_FILE_PATTERN + " pattern found, but no valid output filename was specified");
+            throw new ExecuteException(OUTPUT_FILE_PATTERN
+                    + " pattern found, but no valid output filename was specified");
           }
         }
       }
@@ -396,9 +413,8 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
     } catch (NotFoundException e) {
       logger.error("Element '{}' cannot be found in the workspace.", element.getURI());
       throw new ExecuteException("Element " + element.getURI() + " cannot be found in the workspace");
-    } 
+    }
   }
-
 
   private String runCommand(List<String> arguments, File outFile, Type expectedType) throws ExecuteException {
 
@@ -423,8 +439,8 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
 
       logger.debug("Command {} finished with result {}", arguments.get(0), result);
 
-      if (result == 0) { 
-        // Read the command output 
+      if (result == 0) {
+        // Read the command output
         if (outFile != null) {
           if (outFile.isFile()) {
             URI newURI = workspace.putInCollection(COLLECTION, outFile.getName(), new FileInputStream(outFile));
@@ -449,12 +465,8 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
           line = "";
         }
 
-        throw new ExecuteException(
-                String.format(
-                        "Process %s returned error code %d with this output:\n%s",
-                        arguments.get(0), result, line.trim()
-                        )
-                );
+        throw new ExecuteException(String.format("Process %s returned error code %d with this output:\n%s",
+                arguments.get(0), result, line.trim()));
       }
     } catch (InterruptedException e) {
       throw new ExecuteException("The executor thread has been unexpectedly interrupted", e);
@@ -483,10 +495,10 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
   private List<String> splitParameters(String input) {
 
     // This delimiter matches any non-escaped quote
-    final String QUOTE_DELIM="(?<!\\\\)\"";
+    final String QUOTE_DELIM = "(?<!\\\\)\"";
 
     // This delimiter matches any number of non-escaped spaces
-    final String SPACE_DELIM="((?<!\\\\)\\s)+";
+    final String SPACE_DELIM = "((?<!\\\\)\\s)+";
 
     ArrayList<String> parsedInput = new ArrayList<String>();
     boolean quoted = false;
@@ -500,7 +512,7 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
           // This ignores empty tokens if quotes are at the beginning or the end of the string
           if (!token2.isEmpty())
             parsedInput.add(token2);
-        quoted=true;
+        quoted = true;
       }
 
     return parsedInput;
@@ -545,7 +557,6 @@ public class ExecuteServiceImpl extends AbstractJobProducer implements ExecuteSe
   public void setSecurityService(SecurityService securityService) {
     this.securityService = securityService;
   }
-
 
   /**
    * Callback for setting the user directory service.
