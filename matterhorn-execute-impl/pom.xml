@@ -72,6 +72,7 @@
         <directory>${project.basedir}/src/test/resources</directory>
         <includes>
           <include>log4j.properties</include>
+          <include>test.txt</include>
         </includes>
       </testResource>
     </testResources>
