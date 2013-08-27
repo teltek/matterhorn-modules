@@ -25,12 +25,12 @@
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-execute-api</artifactId>
-      <version>1.0.0</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.opencastproject</groupId>
       <artifactId>matterhorn-common</artifactId>
-      <version>1.2.0</version>
+      <version>${matterhorn.version}</version>
     </dependency>
   </dependencies>
   <build>
