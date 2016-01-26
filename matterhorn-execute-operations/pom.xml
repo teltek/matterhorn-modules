@@ -134,7 +134,7 @@
     <repository>
       <id>opencast</id>
       <name>Opencast Repo</name>
-      <url>http://repository.opencastproject.org/nexus/content/groups/public</url>
+      <url>http://nexus.opencast.org/nexus/content/groups/public</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -145,7 +145,7 @@
     <repository>
       <id>opencast.snapshots</id>
       <name>Opencast SNAPSHOTS</name>
-      <url>http://repository.opencastproject.org/nexus/content/groups/public-snapshots</url>
+      <url>http://nexus.opencast.org/nexus/content/groups/public-snapshots</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
